@@ -2,10 +2,11 @@ package com.yatatsu.androidfluxeventbussample;
 
 import android.app.IntentService;
 import android.app.Notification;
+import android.content.Context;
 import android.content.Intent;
-import android.os.Handler;
-import android.os.Looper;
 import android.util.Log;
+
+import com.yatatsu.androidfluxeventbussample.event.EventEmitter;
 
 import java.util.Random;
 
@@ -14,19 +15,38 @@ import rx.Observer;
 import rx.Subscriber;
 import rx.Subscription;
 
+/**
+ * Dummy Task Service
+ */
+public class SomeLongTaskService extends IntentService {
 
-public class DataConnectionService extends IntentService {
-
-    private static final String TAG = "DataConnectionService";
+    private static final String TAG = "SomeLongTaskService";
+    private static final String ARGS_TASK_ID = "_ARGS_TASK_ID_";
     private Subscription subscription;
+    private ResultEventStore eventStore;
 
-    public DataConnectionService() {
-        super("DataConnectionService");
+    public static Intent createIntent(Context context, long taskId) {
+        return new Intent(context, SomeLongTaskService.class)
+                .putExtra(ARGS_TASK_ID, taskId);
+    }
+
+    public SomeLongTaskService() {
+        super("SomeLongTaskService");
+    }
+
+    @Override
+    public void onCreate() {
+        super.onCreate();
+        EventEmitter emitter = EventEmitter.get();
+        eventStore = ResultEventStore.get(emitter);
+        emitter.on(eventStore);
     }
 
     @Override
     protected void onHandleIntent(Intent intent) {
         Log.d(TAG, "start operation");
+
+        final long taskId = intent.getLongExtra(ARGS_TASK_ID, 0);
 
         startForeground(1, new Notification());
         subscription = getResultObservable().subscribe(new Observer<String>() {
@@ -39,14 +59,14 @@ public class DataConnectionService extends IntentService {
             @Override
             public void onError(Throwable e) {
                 Log.d(TAG, "onError: " + e.getMessage());
-                publishEvent(e.getMessage());
+                publishEvent(taskId, e.getMessage());
                 finishOperation();
             }
 
             @Override
             public void onNext(String s) {
                 Log.d(TAG, "onNext");
-                publishEvent(s);
+                publishEvent(taskId, s);
             }
         });
     }
@@ -57,8 +77,8 @@ public class DataConnectionService extends IntentService {
         if (subscription != null) {
             subscription.unsubscribe();
         }
+        EventEmitter.get().off(eventStore);
         super.onDestroy();
-
     }
 
     private void finishOperation() {
@@ -66,13 +86,8 @@ public class DataConnectionService extends IntentService {
         stopForeground(true);
     }
 
-    void publishEvent(final String message) {
-        new Handler(Looper.getMainLooper()).post(new Runnable() {
-            @Override
-            public void run() {
-                BusProvider.get().post(new ResultEvent(message));
-            }
-        });
+    private void publishEvent(final long taskId, final String message) {
+        EventEmitter.get().emit(new ResultEventAction(taskId, message));
     }
 
     private Observable<String> getResultObservable() {
