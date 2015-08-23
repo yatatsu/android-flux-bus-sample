@@ -4,7 +4,7 @@ import com.squareup.otto.Subscribe;
 import com.yatatsu.androidfluxeventbussample.event.EventAction;
 import com.yatatsu.androidfluxeventbussample.event.EventEmitter;
 import com.yatatsu.androidfluxeventbussample.event.EventStore;
-import com.yatatsu.androidfluxeventbussample.event.StoreChangeAction;
+import com.yatatsu.androidfluxeventbussample.event.AbsStoreChangeAction;
 
 
 public class ResultEventStore extends EventStore {
@@ -27,7 +27,7 @@ public class ResultEventStore extends EventStore {
 
     @Override
     protected StoreChangeAction changeStoreAction() {
-        return new StoreChangeAction<>(this);
+        return new StoreChangeAction(instance);
     }
 
     @Subscribe
@@ -47,5 +47,12 @@ public class ResultEventStore extends EventStore {
 
     public String getMessage() {
         return message;
+    }
+
+    public static class StoreChangeAction extends AbsStoreChangeAction<ResultEventStore> {
+
+        public StoreChangeAction(ResultEventStore store) {
+            super(store);
+        }
     }
 }

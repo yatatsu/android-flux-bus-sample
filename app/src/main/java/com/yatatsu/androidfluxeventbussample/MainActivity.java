@@ -8,7 +8,6 @@ import android.widget.Button;
 
 import com.squareup.otto.Subscribe;
 import com.yatatsu.androidfluxeventbussample.event.EventEmitter;
-import com.yatatsu.androidfluxeventbussample.event.StoreChangeAction;
 
 public class MainActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -49,7 +48,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     @Subscribe
-    public void subscribeResultEvent(StoreChangeAction<ResultEventStore> action) {
+    public void subscribeResultEvent(ResultEventStore.StoreChangeAction action) {
         updateWithEventStore(action.getStore());
     }
 

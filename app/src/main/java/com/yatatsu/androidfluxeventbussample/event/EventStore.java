@@ -12,7 +12,7 @@ public abstract class EventStore {
     /**
      * Action emitted when this store changed.
      */
-    protected abstract StoreChangeAction changeStoreAction();
+    protected abstract AbsStoreChangeAction changeStoreAction();
 
     /**
      * emit self

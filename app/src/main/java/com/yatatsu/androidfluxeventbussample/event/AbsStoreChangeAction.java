@@ -1,11 +1,11 @@
 package com.yatatsu.androidfluxeventbussample.event;
 
 
-public class StoreChangeAction<T extends EventStore> extends EventAction {
+public abstract class AbsStoreChangeAction<T extends EventStore> extends EventAction {
 
     private T store;
 
-    public StoreChangeAction(T store) {
+    public AbsStoreChangeAction(T store) {
         this.store = store;
     }
 
